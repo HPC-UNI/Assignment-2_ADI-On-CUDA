@@ -40,8 +40,8 @@ all: $(ALL_TARGETS)
 
 # Regola pattern: compila adi_<VER>.cu e common/polybench.c insieme
 %: %.cu common/polybench.c
-	$(NVCC) $(NVCCFLAGS) -o $@ $^ $(LDFLAGS)
+	$(NVCC) $(NVCCFLAGS) -x cu -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:
-	find . -type f -name "adi_*" -and -executable -delete
+	find . -type f -name "adi_*" -and -executable -delete  

@@ -1,39 +1,48 @@
 # HPC Assignment #1: Optimization of ADI (Alternating-Direction Implicit)
 
-This project focuses on the parallelization and performance optimization of the **ADI (Alternating-Direction Implicit)** integration kernel from the [Polybench/C](https://sourceforge.net/p/polybench/wiki/Home/) benchmark suite using **OpenMP**.
+This project focuses on the parallelization and performance optimization of the **ADI (Alternating-Direction Implicit)** integration kernel from the [Polybench/C](https://sourceforge.net/p/polybench/wiki/Home/) benchmark suite using **CUDA**.
 
 ---
 
 ## Authors Information
 
 - **Raffaele Cimino**  
-  - Email: [ciminoraffaele04@hotmail.com](mailto:ciminoraffaele04@hotmail.com)  
-  - Role: Implementation of optimized OpenMP kernels (`adi_v1_rc.c`, `adi_v2_rc.c`, `adi_v3_rc.c`), algorithmic optimizations (parallel region hoisting, loop fusion, matrix transposition for cache locality), and test script improvements.
+  - GitHub: [@Rafxf04](https://github.com/Rafxf04) 
+  - Email: [401858@studenti.unimore.it](mailto:401858@studenti.unimore.it)   
+  - Role: Implementation of optimized CUDA kernels (), algorithmic optimizations (), benchmark presentation (`Problem-Anatomy-and-Profiling-the-ADI-Alternating-Direction-Implicit-Stencil-Solver.pptx`), and test script improvements.
+
+- **Sorelle Sandra Simo Defo** (Sandra0502)  
+  - GitHub: [@Sandra0502](https://github.com/Sandra0502)  
+  - Email: [403213@studenti.unimore.it](mailto:403213@studenti.unimore.it)  
+  - Role: Implementation of CUDA parallelization variants ().
 
 ---
 
 ## Project Structure & Implementations
 
+### Reference Implementation
 - **`adi_ref.c` (Reference - `ref`)**:
-  - Pure sequential baseline version directly from Polybench.
-- **`adi_v1.c` (Baseline OpenMP - `v1`)**:
-  - Naive OpenMP parallelization placing `#pragma omp parallel for` directly on individual inner loops inside the timestep iteration loop. Suffers from high fork-join overhead.
-- **`adi_v1_rc.c` (Persistent Parallel Region - `v1_rc`)**:
-  - Hoists `#pragma omp parallel` outside the outer timestep (`t`) loop, keeping the thread team alive and using `#pragma omp for` inside. Eliminates thread team recreation overhead at each timestep.
-- **`adi_v2_rc.c` (Loop Fusion - `v2_rc`)**:
-  - Fuses the three row-wise computation blocks inside a single `#pragma omp for` iteration space over rows (`i1`). Drastically reduces synchronization barriers between row passes.
-- **`adi_v3_rc.c` (Task-Based Parallelism & Column Loop Inversion - `v3_rc`)**:
-  - Implements an asynchronous, task-based parallelization model using OpenMP `#pragma omp taskloop num_tasks(4 * nthreads)` for dynamic load balancing across threads, orchestrated by a single master thread (`#pragma omp single`) driving the timestep loop.
-  - Inverts the loop hierarchy in Phase 2 (column sweep) by hoisting the independent column index `i2` to the outer loop, fusing forward elimination, boundary division, and back-substitution into self-contained column tasks.
-  - Slashes OpenMP synchronization barriers from $O(N)$ (~2047) per timestep down to strictly 2 taskloop barriers. Captures the architectural trade-off between barrier elimination and the Stride-N memory traversal overhead.
+  - Pure sequential baseline version directly from Polybench/C.
+
+### Raffaele Cimino Implementations (`_rc`)
+
+
+### Sandra Implementations (`Method*`)
+
+
+### Headers, Build System & Documentation
 - **`adi.h`**:
-  - Problem definitions, dataset dimension presets (`MINI`, `SMALL`, `STANDARD`, `LARGE`, `EXTRALARGE`), and data types.
+  - Problem definitions, dataset dimension presets (`MINI`, `SMALL`, `STANDARD`, `LARGE`, `EXTRALARGE`), and data types (`DATA_TYPE`).
 - **`common/`**:
-  - Polybench support utilities for accurate timing measurement (`POLYBENCH_TIME`) and data dumping (`POLYBENCH_DUMP_ARRAYS`).
+  - Polybench support utilities for accurate timing measurement (`POLYBENCH_TIME`) and array dumping (`POLYBENCH_DUMP_ARRAYS`):
+    - `common/polybench.c`: Core timing and array print routines.
+    - `common/polybench.h`: Definitions, configuration switches, and macro helpers.
 - **`Makefile`**:
-  - GNU Make build system configured with OpenMP (`-fopenmp`), optimization level `-O2`, and dataset macros.
+  - GNU Make build system configured with CUDA (`nvcc`)
 - **`test.sh`**:
-  - Automated bash verification script that compares output matrices against the reference sequential run.
+  - Automated bash verification script that compares output matrices against the reference sequential run (`adi_ref`).
+- **`Problem-Anatomy-and-Profiling-the-ADI-Alternating-Direction-Implicit-Stencil-Solver.pptx`**:
+  - Presentation and profiling analysis of the ADI stencil solver on an NVIDIA Jetson Nano (quad-core ARM Cortex-A57), covering performance metrics, cache locality, SIMD vectorization, and efficiency comparisons.
 
 ---
 
@@ -44,12 +53,16 @@ The build system is driven by `make`.
 ### Available Targets
 - `make build`: Compiles the binary without executing it.
 - `make run`: Compiles (if needed) and executes the target binary.
+- `make all`: Compiles all available `adi_*` implementations.
 - `make clean`: Removes all compiled `adi_*` executables.
 
 ### Build Variables
 You can pass the following variables to `make`:
 - **`VER`**: Specifies which implementation to build (default: `ref`).  
-  Available values: `ref`, `v1`, `v1_rc`, `v2_rc`, `v3_rc`.
+  Available values:
+  - **Sequential Baseline**: `ref`
+  - **Raffaele Cimino Implementations**: 
+  - **Sandra Implementations**: 
 - **`DATASET`**: Specifies the problem dimensions (default: `mini`).  
   Available sizes:
   - `mini`: $N = 32$, $TSTEPS = 2$
@@ -85,17 +98,11 @@ make run VER=ref DATASET=large
 ### 3. Benchmarking Parallel Versions with Default Threads
 Build and run each parallel version:
 ```sh
-# Naive OpenMP baseline
-make run VER=v1 DATASET=standard
-
-# Persistent Parallel Region (Raffaele v1)
+# Raffaele Cimino implementations
 make run VER=v1_rc DATASET=standard
 
-# Row-wise Loop Fusion (Raffaele v2)
-make run VER=v2_rc DATASET=standard
+# Sandra implementations
 
-# OpenMP Taskloop & Column Inversion (Raffaele v3)
-make run VER=v3_rc DATASET=standard
 ```
 
 ## Verification & Correctness Checking
@@ -104,18 +111,16 @@ To verify that the parallel optimizations produce identical results to the refer
 
 ### Running the Test Script
 ```sh
-# Test a specific version with standard dataset
+# Test specific versions with standard dataset
 ./test.sh v1_rc
-./test.sh v2_rc
-./test.sh v3_rc
+
 
 # Test with a specific dataset size (e.g. mini or small)
 DATASET=small ./test.sh v2_rc
-DATASET=mini ./test.sh v3_rc
 ```
 
 ### How Verification Works
-1. The script compiles `adi_ref` with `DUMP_ARRAYS=1`, dumping the matrix elements formatted to standard error (`stderr`).
+1. The script (`./test.sh`) compiles `adi_ref` with `DUMP_ARRAYS=1`, dumping the matrix elements formatted to standard error (`stderr`).
 2. The reference output is cached in `/tmp/hpc-lab-ref_$DATASET.txt`.
 3. The specified parallel version is compiled with `DUMP_ARRAYS=1` and its output redirected to a temporary file via `mktemp`.
 4. A file comparison (`diff -q`) checks that all elements match the sequential reference.

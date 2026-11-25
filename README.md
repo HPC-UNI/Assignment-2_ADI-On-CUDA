@@ -1,4 +1,4 @@
-# HPC Assignment #1: Optimization of ADI (Alternating-Direction Implicit)
+# HPC Assignment #2: Optimization of ADI (Alternating-Direction Implicit)
 
 This project focuses on the parallelization and performance optimization of the **ADI (Alternating-Direction Implicit)** integration kernel from the [Polybench/C](https://sourceforge.net/p/polybench/wiki/Home/) benchmark suite using **CUDA**.
 

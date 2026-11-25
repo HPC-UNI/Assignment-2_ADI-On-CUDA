@@ -38,7 +38,7 @@ This project focuses on the parallelization and performance optimization of the 
     - `common/polybench.c`: Core timing and array print routines.
     - `common/polybench.h`: Definitions, configuration switches, and macro helpers.
 - **`Makefile`**:
-  - GNU Make build system configured with CUDA (`nvcc`)
+  - GNU Make build system configured with CUDA (`nvcc`), optimization level `-O2`, and dataset macros. Supports compiling single targets or `all`.
 - **`test.sh`**:
   - Automated bash verification script that compares output matrices against the reference sequential run (`adi_ref`).
 - **`Problem-Anatomy-and-Profiling-the-ADI-Alternating-Direction-Implicit-Stencil-Solver.pptx`**:
